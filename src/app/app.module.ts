@@ -14,7 +14,6 @@ import { LoginComponent } from './login/login.component';
 import { LoginService } from './login.service';
 import { VotesService } from './votes.service';
 
-
 @NgModule({
   imports: [
     BrowserModule,

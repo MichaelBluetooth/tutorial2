@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, flatMap } from 'rxjs/operators'
 import { Observable } from 'rxjs';
+import { MockTopics } from './mock-data/topics'; // Import the list of mocked topics
 
-export class Topic
-{
+export class Topic {
   topicID;
   Author; //": "author@icsd.k12.ny.us",
   Title; //": "topic2",
@@ -15,61 +14,54 @@ export class Topic
   countAbstain: Number; //": "0"
 }
 
-
 @Injectable({
   providedIn: 'root'
 })
 export class TopicsService {
-  topics: Topic[] = null;
   static nextTopicId = 100;
 
   constructor(private http: HttpClient) {
-
-
-  }
-
-  init() {
-    return this.http.get('/assets/topics.json').pipe(map((topics: any) => {
-      this.topics = topics;
-    }));
   }
 
   addTopic(topic: any) {
-    TopicsService.nextTopicId = TopicsService.nextTopicId + 1;
-    topic.topicID = TopicsService.nextTopicId;
-    this.topics.push(topic);
+    // Return an observable to simulate async behavior API calls with exhibit
+    return Observable.create(o => {
+      TopicsService.nextTopicId = TopicsService.nextTopicId + 1;
+      topic.topicID = TopicsService.nextTopicId;
+      MockTopics.push(topic); //push the new topic to the list of mocked topics
+      o.next(topic); //return the topic, along with it's newly assigned id
+    });
+
+    // If we had an api, we'd execute an http POST
+    //  Then callers would use this function like so:
+    //      this.topicsService.addTopic(someNewTopic).subscribe(createdTopicFromApi => {
+    //         //Do something with "createdTopicFromApi"
+    //      });
+    // return this.http.post('/api/v1/topics', topic);
   }
 
   getTopic(atopicID) {
-    if (this.topics == null) {
-      return this.init().pipe(flatMap(() => {
-        return Observable.create(o => o.next(this.topics.find(topic => {
-          return topic.topicID == atopicID
-        })));
-      }));
-    }
-    else {
-      return Observable.create(o => o.next(this.topics.find(topic => {
-        return topic.topicID == atopicID
-      })));
-    }
+    return Observable.create(o => o.next(MockTopics.find(topic => {
+      return topic.topicID == atopicID;
+    })));
 
+    // If we had an api:
+    // this.http.get('api/v1/topics/' + atopicID);
   }
 
   putTopic(atopic) {
-    let i = this.topics.map(topic => topic.topicID).indexOf(atopic.topicID);
+    let i = MockTopics.map(topic => topic.topicID).indexOf(atopic.topicID);
     if (i > -1) {
-      this.topics[i] = atopic;
+      MockTopics[i] = atopic;
     }
+
+    // Similar to "addTopic()" except the verb and URL might be different
   }
 
-
   getTopics() {
-    if (this.topics == null) {
-      return this.init().pipe(map(() => { return this.topics }));
-    }
-    else {
-      return Observable.create(o => o.next(this.topics));
-    }
+    return Observable.create(o => o.next(MockTopics));
+
+    // If we had an api:
+    // this.http.get('api/v1/topics')
   }
 }

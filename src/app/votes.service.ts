@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, flatMap } from 'rxjs/operators'
 import { Observable } from 'rxjs';
+import { MockVotes } from './mock-data/votes'; //Import the mock votes
 
 export class Vote {
   voteID; //: "1",
@@ -16,33 +16,27 @@ export class Vote {
 })
 export class VotesService {
 
-  votes: Vote[] = null;
   static nextVoteId = 100;
 
   constructor(private http: HttpClient) {
   }
 
-  init() {
-    if ( null === this.votes ) {
-      return this.http.get('/assets/votes.json').pipe(map((votes: any) => {
-        this.votes = votes;
-      }));
-    } else {
-      return Observable.create(o => o.next());
-    }
-  }
-
   addVote(avote: Vote) {
-    return this.init().pipe(map(() => {
+    return Observable.create(o => {
       VotesService.nextVoteId = VotesService.nextVoteId + 1;
       avote.voteID = VotesService.nextVoteId;
-      this.votes.push(avote);
-    }));
+      MockVotes.push(avote);
+      o.next();
+    });
+
+    //If we had an API we'd likely execute an http POST
   }
 
   hasVoted(auserid, atopicid) {
-    return this.init().pipe(map(() => {
-      return this.votes.findIndex(v => v.topicID === atopicid && v.loginEmail === auserid) > -1;
-    }));
+    return Observable.create(o => {
+      o.next(MockVotes.findIndex(v => v.topicID === atopicid && v.loginEmail === auserid) > -1);
+    });
+
+    //If we had an API we'd likely execute an http GET
   }
 }
